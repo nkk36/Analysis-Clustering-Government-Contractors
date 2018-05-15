@@ -1,0 +1,3 @@
+int.hist = function(x,ylab="Frequency",...) {
+  barplot(table(factor(x,levels=min(x):max(x))),space=0,xaxt="n",ylab=ylab,...);axis(1)
+}
