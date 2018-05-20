@@ -20,9 +20,11 @@ library(RMySQL)
 df_original_naics2d = fread("data/percentages_naics2D_indices_values.csv")
 df_original_naics6d = fread("data/percentages_naics6D_indices_values.csv")
 df_original_psc = fread("data/percentages_psc_indices_values.csv")
+df_original_funding_agency = fread("data/percentages_funding_agency_indices_values.csv")
+
 
 # Set parameters for pre-processing ====
-Param_Table = "naics6d" # Options: "naics2d" or "naics6d" or "psc"
+Param_Table = "psc" # Options: "naics2d" or "naics6d" or "psc" or "funding_agency"
 
 
 # Pre-Process ====
@@ -36,6 +38,9 @@ if (Param_Table == "naics6d") {
   #remove(df_original_psc, df_original_naics6d)
 }else if (Param_Table == "psc") {
   df = df_original_psc
+  #remove(df_original_naics2d, df_original_naics6d)
+}else if (Param_Table == "funding_agency") {
+  df = df_original_funding_agency
   #remove(df_original_naics2d, df_original_naics6d)
 }
 

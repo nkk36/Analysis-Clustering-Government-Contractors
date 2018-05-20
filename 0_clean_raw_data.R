@@ -65,6 +65,18 @@ contract_type_desc = data.frame(contract_type_desc = contract_type_split$contrac
 
 contract_type = cbind(contract_type_code, contract_type_desc)
 
+# Split funding agency ID column ====
+
+# Split type of contract pricing from type of contract description
+funding_agency_split = unlist(stri_split(str = df$fundingrequestingagencyid, fixed = ":", n = 2))
+funding_agency_split = data.frame(funding_agency_split = funding_agency_split)
+
+funding_agency_code = data.frame(funding_agency_code = funding_agency_split$funding_agency_split[seq(1, nrow(funding_agency_split), 2)])
+funding_agency_desc = data.frame(funding_agency_desc = funding_agency_split$funding_agency_split[seq(2, nrow(funding_agency_split), 2)])
+
+funding_agency = cbind(funding_agency_code, funding_agency_desc)
+
+
 # Column bind cleaned columns ====
 
 #################### Combine data with split PSC and NAICS codes and contract types
@@ -75,14 +87,18 @@ df2 = cbind(parentdunsnumber = df$parentdunsnumber,
             psc_cat = df$psc_cat, 
             naics, 
             psc, 
-            contract_type
+            contract_type,
+            funding_agency
             )
 
-df2 = fread("data/2_clustering_data_before_dcast.csv")
+
+df2 = fread("data/2_clustering_data_before_dcast.csv", colClasses = "character")
+df2$dollarsobligated = as.numeric(df2$dollarsobligated)
 
 remove(naics_split, naics_code, naics_desc, psc_split, psc_code, psc_desc, 
        contract_type_split, contract_type_code, contract_type_desc, psc, naics,
-       contract_type)
+       contract_type, funding_agency, funding_agency_code, funding_agency_desc,
+       funding_agency_split)
 
 
 
@@ -379,19 +395,19 @@ remove(temp, values, Sparse_Matrix, indices, total_dollars_obligated_psc_duns_ve
 
 # Total Dollars Obligated --> Funding Agency ====
 
-# Sum dollars obligated for each parent DUNS number and for each NAICS code
+# Sum dollars obligated for each parent DUNS number and for each funding agency code
 Total_Dollars_Obligated  = df2 %>% 
-  group_by(parentdunsnumber, naics_code) %>% 
+  group_by(parentdunsnumber, funding_agency_code) %>% 
   summarise(total = sum(dollarsobligated))
 
 # Remove rows where parent DUNS is blank or the NAICS code is blank
 Total_Dollars_Obligated = Total_Dollars_Obligated[Total_Dollars_Obligated$parentdunsnumber != "" | 
-                                                    Total_Dollars_Obligated$naics_code != "",]
+                                                    Total_Dollars_Obligated$funding_agency_code != "",]
 
 
 # Cast the data into long form using the sum of dollars obligated as the value. If no value is known, fill with 0
 Total_Dollars_Obligated = data.table::dcast(data = Total_Dollars_Obligated, 
-                                            formula = parentdunsnumber ~ naics_code, 
+                                            formula = parentdunsnumber ~ funding_agency_code, 
                                             fill = 0, 
                                             value.var = "total"
 )
@@ -411,19 +427,19 @@ Total_Dollars_Obligated = Total_Dollars_Obligated[,c(1,ncol(Total_Dollars_Obliga
 
 
 # Save the data used for clustering by removing the columns for the DUNS and vendor names
-Total_Dollars_Obligated = Total_Dollars_Obligated[which(rowSums(Total_Dollars_Obligated[,3:1206]) != 0),1:ncol(Total_Dollars_Obligated)] 
+Total_Dollars_Obligated = Total_Dollars_Obligated[which(rowSums(Total_Dollars_Obligated[,3:ncol(Total_Dollars_Obligated)]) != 0),1:ncol(Total_Dollars_Obligated)] 
 rownames(Total_Dollars_Obligated) = 1:nrow(Total_Dollars_Obligated) # Contains data for clustering using count of unique piids
 
 # Save duns and vendor names
 duns_vendor_names = Total_Dollars_Obligated[,1:2]
-#write.csv(duns_vendor_names, "data/5_vendor_names_duns_total_dollars_obligated.csv", row.names = FALSE)
+#write.csv(duns_vendor_names, "data/total_dollars_obligated_funding_agency_duns_vendor_names.csv", row.names = FALSE)
 
 # Data for clustering - total dollars obligated
 Total_Dollars_Obligated = Total_Dollars_Obligated[,3:ncol(Total_Dollars_Obligated)]
-#write.csv(Total_Dollars_Obligated, "data/10_Total_Dollars_Obligated_per_Vendor_without_names_clustering_data.csv", row.names = FALSE)
+# write.csv(Total_Dollars_Obligated, "data/total_dollars_obligated_funding_agency_clustering_data.csv", row.names = FALSE)
 
 #################### Make sparse matrix and save it to compress the data
-Total_Dollars_Obligated = fread("data//10_Total_Dollars_Obligated_per_Vendor_without_names_clustering_data.csv")
+Total_Dollars_Obligated = fread("data/total_dollars_obligated_funding_agency_clustering_data.csv")
 indices = data.frame(which(Total_Dollars_Obligated != 0,arr.ind = T))
 Total_Dollars_Obligated = data.frame(Total_Dollars_Obligated)
 
@@ -438,13 +454,19 @@ for (i in 2:nrow(indices)){
   
 }
 
-values = read.csv("data/values_total_dollars_obligated.csv")
+values = read.csv("values.csv")
 indices$values = values$values
+temp = data.frame(col = 1:ncol(Total_Dollars_Obligated),
+                  funding_agency = substr(colnames(Total_Dollars_Obligated),1,5))
+indices = left_join(x = indices,
+                    y = temp,
+                    by = "col")
+colnames(indices)[4] = "Desc"
 Sparse_Matrix = sparseMatrix(i = indices$row, j = indices$col, x = indices$values)
 
 # Save the sparse data as a sparse matrix and as a CSV
-# writeMM(Sparse_Matrix, "Total_Dollars_Obligated.rua")
-# write.csv(indices, "Total_Dollars_Obligated.csv", row.names = FALSE)
+# writeMM(Sparse_Matrix, "total_dollars_obligated_funding_agency_sparse_matrix.rua")
+# write.csv(indices, "total_dollars_obligated_funding_agency_indices_values.csv", row.names = FALSE)
 
 
 # Number of Unique PIIDS --> NAICS 6D ====

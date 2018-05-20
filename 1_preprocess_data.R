@@ -16,14 +16,15 @@ source("R/Transform_Negative_Values.R")
 
 # Load data
 df_original_naics6d = fread("data/total_dollars_obligated_naics6D_indices_values.csv") # NAICS 6D
-df_original_naics2d = fread("data/total_dollars_obligated_naics2D_indices_values.CSV") # NAICS 2D
-df_original_psc = fread("data/total_dollars_obligated_psc_indices_values.CSV") # PSC
+df_original_naics2d = fread("data/total_dollars_obligated_naics2D_indices_values.csv") # NAICS 2D
+df_original_psc = fread("data/total_dollars_obligated_psc_indices_values.csv") # PSC
+df_original_funding_agency = fread("data/total_dollars_obligated_funding_agency_indices_values.csv") # Funding agency
 
 
 # Data Processing ====
 
 # Set Parameters for pre-processing ====
-Param_Table = "psc" # Options: "naics6d" or "naics2d" or "psc"
+Param_Table = "funding_agency" # Options: "naics6d" or "naics2d" or "psc" or "funding_agency"
 Param_Negative_Values = "absolute value" # Options: "absolute value" or "zero"
 Param_Row_Percentages = T # Options: T or F
 Param_Capping_Type = "Below" # Options: "Below" or "Above"
@@ -37,13 +38,16 @@ Filename_CSV = paste("data/percentages_", Param_Table, "_indices_values.csv", se
 # Create a copy of the table
 if (Param_Table == "naics6d") {
   df = df_original_naics6d
-  remove(df_original_naics2d, df_original_psc)
+  remove(df_original_naics2d, df_original_psc, df_original_funding_agency)
 }else if (Param_Table == "naics2d") {
   df = df_original_naics2d
-  remove(df_original_psc, df_original_naics6d)
+  remove(df_original_psc, df_original_naics6d, df_original_funding_agency)
 }else if (Param_Table == "psc") {
   df = df_original_psc
-  remove(df_original_naics2d, df_original_naics6d)
+  remove(df_original_naics2d, df_original_naics6d, df_original_funding_agency)
+}else if (Param_Table == "funding_agency") {
+  df = df_original_funding_agency
+  remove(df_original_naics2d, df_original_naics6d, df_original_psc)
 }
 
 # Transform negative values as specified
