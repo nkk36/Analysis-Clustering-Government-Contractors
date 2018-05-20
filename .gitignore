@@ -2,3 +2,4 @@ data/
 Python/
 *.rda
 *.Rmd
+.Rhistory
