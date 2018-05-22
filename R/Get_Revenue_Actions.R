@@ -6,6 +6,7 @@ Get_Revenue_Actions = function(company) {
   library(formattable)
   library(dplyr)
   library(DT)
+  library(magrittr)
   
   # Load data
   vendors = read.csv("data/total_dollars_obligated_total_actions_duns_vendor_names.csv",
@@ -17,9 +18,9 @@ Get_Revenue_Actions = function(company) {
   Output = vendors[vendors$vendorname %in% company,]
   colnames(Output) = c("DUNS", "Company", "Revenue", "Actions")
   rownames(Output) = 1:nrow(Output)
-  Output = datatable(Output)
-  formatCurrency(table = Output, columns = "Revenue")
-  formatCurrency(table = Output, columns = "Actions", currency = "", digits = 0)
+  Output = datatable(Output) %>%
+    formatCurrency(columns = "Revenue") %>%
+    formatCurrency(columns = "Actions", currency = "", digits = 0)
                                                        
     
   # Return ====

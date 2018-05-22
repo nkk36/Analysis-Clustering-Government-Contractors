@@ -1,10 +1,14 @@
-Find_NN = function(k = 5, company, minRev, maxRev, minAct, maxAct) {
+Find_NN = function(k = 5, company, minRev, maxRev, minAct, maxAct, includeAct = FALSE) {
   
   # Setup ====
   
   # Load packages
   library(data.table)
+  library(dbscan)
   library(dplyr)
+  library(DT)
+  library(formattable)
+  library(magrittr)
   library(Matrix)
 
   # Load data
@@ -114,8 +118,41 @@ Find_NN = function(k = 5, company, minRev, maxRev, minAct, maxAct) {
   df = left_join(x = df,
                  y = n,
                  by = "parentdunsnumber")
+  df = df[,c("parentdunsnumber", "vendorname","total_dobl","total_actions",
+              sort(setdiff(colnames(df),c("parentdunsnumber", "vendorname","total_dobl","total_actions"))))]
   
-
+  df$total_dobl = as.numeric(df$total_dobl)
+  df$total_actions = as.numeric(df$total_actions)
   
+  remove(n)
+  
+  # Subset ====
+  
+  if (includeAct == TRUE) {
+    Index = which(df$total_dobl >= minRev & df$total_dobl <= maxRev & df$total_actions >= minAct & df$total_actions <= maxAct)
+  } else {
+    Index = which(df$total_dobl >= minRev & df$total_dobl <= maxRev)
+  }
+  
+  df_sub = df[Index,setdiff(colnames(df), c("parentdunsnumber", "vendorname", "total_dobl", "total_actions"))]
+  rownames(df_sub) = 1:nrow(df_sub)
+  
+  Vendors = df[,c("parentdunsnumber", "vendorname", "total_dobl", "total_actions")]
+  Vendors_sub = Vendors[Index,]
+  rownames(Vendors_sub) = 1:nrow(Vendors_sub)
+  colnames(Vendors_sub) = c("DUNS", "Company", "Revenue", "Actions")
+  
+  # Nearest neighbors ====
+  
+  NN = kNN(x = df_sub, k = k, sort = TRUE)
+  NN2 = NN$id[which(Vendors_sub$Company == company),]
+  Output = Vendors_sub[NN2,]
+  rownames(Output) = 1:nrow(Output)
+  Output = datatable(Output) %>%
+    formatCurrency(columns = "Revenue") %>%
+    formatCurrency(columns = "Actions", currency = "", digits = 0)
+  
+  # Return ====
+  return(Output)
   
 }
