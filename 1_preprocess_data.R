@@ -15,9 +15,9 @@ source("R/Min_Max_Scaling.R")
 source("R/Transform_Negative_Values.R")
 
 # Load data
-df_original_naics6d = fread("data/total_dollars_obligated_naics6D_indices_values.csv") # NAICS 6D
-df_original_naics2d = fread("data/total_dollars_obligated_naics2D_indices_values.csv") # NAICS 2D
-df_original_psc = fread("data/total_dollars_obligated_psc_indices_values.csv") # PSC
+df_original_naics6d = fread("data/total_dollars_obligated_naics6D_indices_values_new.csv") # NAICS 6D
+df_original_naics2d = fread("data/total_dollars_obligated_naics2D_indices_values_new.csv") # NAICS 2D
+df_original_psc = fread("data/total_dollars_obligated_psc_indices_values_new.csv") # PSC
 df_original_funding_agency = fread("data/total_dollars_obligated_funding_agency_indices_values.csv") # Funding agency
 
 

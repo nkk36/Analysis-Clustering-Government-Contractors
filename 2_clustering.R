@@ -24,7 +24,7 @@ df_original_funding_agency = fread("data/percentages_funding_agency_indices_valu
 
 
 # Set parameters for pre-processing ====
-Param_Table = "psc" # Options: "naics2d" or "naics6d" or "psc" or "funding_agency"
+Param_Table = "naics2d" # Options: "naics2d" or "naics6d" or "psc" or "funding_agency"
 
 
 # Pre-Process ====
@@ -60,26 +60,36 @@ remove(matrix, df)
 
 # Clustering ====
 
-load("data/NAICS_2D_Clusters_2_50.RData")
+#load("data/NAICS_2D_Clusters_2_50.RData")
 
 
-# Clusters = 2:50
-# Cluster_KMeans = list()
-# 
-# for (i in Clusters) {
-#   # Set seed
-#   set.seed(123)
-#   
-#   # Perform K-Means clustering with 13 groups
-#   temp_kmeans = kmeans(x = df_for_cp, centers = i, nstart=50, iter.max = 15)
-#   Cluster_KMeans[[i - 1]] = temp_kmeans
-# }
-# 
-# remove(temp_kmeans)
+# Remove
+remove(list=setdiff(ls(), "df_for_cp"))
+gc()
+
+Clusters = 2:50
+Cluster_KMeans = list()
+
+for (i in Clusters) {
+  # Set seed
+  set.seed(123)
+
+  # Perform K-Means clustering with 13 groups
+  temp_kmeans = kmeans(x = df_for_cp, centers = i, nstart=50, iter.max = 15)
+  Cluster_KMeans[[i - 1]] = temp_kmeans
+}
+
+remove(temp_kmeans)
 
 
 
+# Plot ====
+t = c()
+for (i in 1:49){
+  t[i] = Cluster_KMeans[[i]]$tot.withinss
+}
 
+plot(2:50, t, col = ifelse(2:50 == 15, "red", "black"))
 
 
 

@@ -1,5 +1,4 @@
 Find_NN = function(k = 5, company, minRev, maxRev, minAct, maxAct, includeAct = FALSE) {
-  
   # Setup ====
   
   # Load packages

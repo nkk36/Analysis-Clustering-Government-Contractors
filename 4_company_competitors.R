@@ -26,14 +26,14 @@ naics2D_vendors = read.csv("data/total_dollars_obligated_naics2D_duns_vendor_nam
 
 # Set parameters ====
 
-DUNS = "964725688" #"077815736"#"118330203"
-print(naics2D_vendors[naics2D_vendors$parentdunsnumber == DUNS,])
+DUNS = "125206883" #001381284" #"118330203" #"964725688" #"077815736"#
+print(naics2D_vendors[naics2D_vendors$dunsnumber == DUNS,])
 N_Clusters = 13
 #Cluster = unique(naics2D$Column[naics2D$Desc == Industry])
 Subcategory = "NAICS"
 N_Clusters_subcategory = 15
-Revenue_Limits = c(500000000,5000000000)
-Action_Limits = c(500,3000)
+Revenue_Limits = c(100000000, 350000000)
+Action_Limits = c(80,120)
 
 # Data Processing ====
 
@@ -115,13 +115,13 @@ colnames(psc)[3:ncol(psc)] = sapply(X = colnames(psc)[3:ncol(psc)],
                                       })
 
 df = naics6d %>%
-  inner_join(y = psc, by = c("parentdunsnumber", "vendorname")) %>%
-  inner_join(y = funding_agency, by = c("parentdunsnumber", "vendorname"))
+  inner_join(y = psc, by = c("dunsnumber", "vendorname")) %>%
+  inner_join(y = funding_agency, by = c("dunsnumber", "vendorname"))
 
 remove(funding_agency, naics6d, psc)
 
 # Find the row of the company in the data and determine its cluster/group
-Row = which(naics2D_vendors$parentdunsnumber == DUNS)
+Row = which(naics2D_vendors$dunsnumber == DUNS)
 Group = Cluster_KMeans[[N_Clusters - 1]]$cluster[Row]
 Industry = names(which.max(Cluster_KMeans[[N_Clusters - 1]]$centers[Group,]))
 
@@ -134,19 +134,19 @@ rownames(companies) = 1:nrow(companies)
 n = fread("data/dobl_actions_by_duns.csv", colClasses = "character")
 companies = left_join(x = companies,
                       y = n,
-                      by = "parentdunsnumber")
+                      by = "dunsnumber")
 
 companies$total_dobl = as.numeric(companies$total_dobl)
 companies$total_actions = as.numeric(companies$total_actions)
 # Print company info ====
-print(companies[companies$parentdunsnumber == DUNS,])
+print(companies[companies$dunsnumber == DUNS,])
 
 # Nearest Neighbors ====
 
-df_sub = df[df$parentdunsnumber %in% companies$parentdunsnumber,]
-df_companies = df_sub[,c("parentdunsnumber", "vendorname")]
+df_sub = df[df$dunsnumber %in% companies$dunsnumber,]
+df_companies = df_sub[,c("dunsnumber", "vendorname")]
 df_companies = df_companies %>%
-  left_join(y = companies, by = c("parentdunsnumber", "vendorname"))
+  left_join(y = companies, by = c("dunsnumber", "vendorname"))
 
 Index = which(df_companies$total_dobl >= Revenue_Limits[1] & df_companies$total_dobl <= Revenue_Limits[2] 
               & df_companies$total_actions >= Action_Limits[1] & df_companies$total_actions <= Action_Limits[2])
@@ -160,6 +160,8 @@ rownames(df_companies2) = 1:nrow(df_companies2)
 # Cluster ====
 
 t = kNN(x = df_sub2, k = 5, sort = TRUE)
-which(df_companies2$parentdunsnumber == DUNS)
-t$id[which(df_companies2$parentdunsnumber == DUNS),]
-df_companies2[t$id[which(df_companies2$parentdunsnumber == DUNS),],]
+which(df_companies2$dunsnumber == DUNS)
+t$id[which(df_companies2$dunsnumber == DUNS),]
+df_companies2[t$id[which(df_companies2$dunsnumber == DUNS),],]
+
+Output = df_companies2[t$id[which(df_companies2$dunsnumber == DUNS),],]

@@ -1,6 +1,7 @@
 # Setup ====
 
 # Load packages
+library(ClusterR)
 library(data.table)
 library(dplyr)
 library(magrittr)
@@ -24,7 +25,7 @@ naics2D_vendors = read.csv("data/total_dollars_obligated_naics2D_duns_vendor_nam
 
 # Set parameters to subset initial clustering on ====
 Industry = "Professional_Services" #"Professional_Services"
-N_Clusters = 13
+N_Clusters = 15
 #Cluster = unique(naics2D$Column[naics2D$Desc == Industry])
 Subcategory = "NAICS"
 N_Clusters_subcategory = 15
@@ -43,7 +44,7 @@ rownames(companies) = 1:nrow(companies)
 n = fread("data/dobl_actions_by_duns.csv", colClasses = "character")
 companies = left_join(x = companies,
                       y = n,
-                      by = "parentdunsnumber")
+                      by = "dunsnumber")
 
 companies$total_dobl = as.numeric(companies$total_dobl)
 companies$total_actions = as.numeric(companies$total_actions)
@@ -63,7 +64,7 @@ if (Subcategory == "NAICS"){
                      colClasses = "character")
   df_for_cp = cbind(vendors, df_for_cp )
   df_for_cp  = as.data.frame(df_for_cp )
-  df_for_cp  = df_for_cp [df_for_cp $parentdunsnumber %in% companies$parentdunsnumber,]
+  df_for_cp  = df_for_cp [df_for_cp $dunsnumber %in% companies$dunsnumber,]
   temp = fread("data/total_dollars_obligated_naics6D_clustering_data.csv",
                colClasses = "character")
   colnames(df_for_cp)[3:ncol(df_for_cp)] = colnames(temp)
@@ -90,9 +91,11 @@ if (Subcategory == "NAICS"){
   companies$subcluster = clusters
   companies[which(substr(companies$vendorname,1,4) == "BOOZ"),]
   companies[which(companies$vendorname == "ANALYTIC SERVICES INC"),]
-  Subcluster = 10 # Choose subcluster based on the two above lines
+  companies[which(companies$vendorname == "GENERAL DYNAMICS MISSION SYSTEMS, INC"),]
+  
+  Subcluster = 9 # Choose subcluster based on the two above lines
   c = Cluster_KMeans_naics6D[[N_Clusters_subcategory-1]]
-  t = as.data.frame(c$centers)
+  t = as.data.frame(c$centroids)
   t2  = t[Subcluster,which(t[Subcluster,] != 0)]
   plot(1:length(t2), sort(t2))
   t3 = melt(t2)
