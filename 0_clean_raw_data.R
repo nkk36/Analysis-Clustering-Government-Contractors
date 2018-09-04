@@ -19,7 +19,7 @@ library(stringr)
 # Load functions
 source("R/set_environment_variables.R", chdir = T)
 
-# Set environment variables
+# Run and Set environment variables
 set_environment_variables(TRUE)
 
 # Connect to database ====
