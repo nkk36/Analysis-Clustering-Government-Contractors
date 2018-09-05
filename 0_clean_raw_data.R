@@ -52,7 +52,7 @@ FROM public."FPDS_FY17"')
 #################### Read in data
 
 
-df = fread("data/2_clustering_data_before_dcast.csv", colClasses = "character")
+#df2 = fread("data/2_clustering_data_before_dcast.csv", colClasses = "character")
 df$dollarsobligated = as.numeric(df$dollarsobligated)
 
 
@@ -132,7 +132,7 @@ Total_Dollars_Obligated  = df %>%
   summarise(total = sum(dollarsobligated)) %>%
   ungroup()
 
-remove(df)
+#remove(df)
 
 # Remove rows where parent DUNS is blank or the NAICS code is blank
 Total_Dollars_Obligated = Total_Dollars_Obligated[Total_Dollars_Obligated$dunsnumber != "",]
@@ -211,7 +211,7 @@ write.csv(indices, "data/total_dollars_obligated_naics6D_indices_values.csv", ro
 # Remove data
 remove(temp, values, Sparse_Matrix, indices, duns_vendor_names_total_dollars_obligated_naics6D, Total_Dollars_Obligated)
 
-# Total Dollars Obligated --> NAICS 2D ====
+# Dollars Obligated --> NAICS 2D ====
 
 # Read in 2D NAICS lookup table
 naics2D = fread("data/lookup_naics2D.csv")
@@ -318,7 +318,7 @@ Total_Dollars_Obligated  = df %>%
   ungroup()
 
 # Remove
-remove(df)
+#remove(df)
 
 # Remove rows where parent DUNS is blank or the PSC code is blank
 Total_Dollars_Obligated = Total_Dollars_Obligated[Total_Dollars_Obligated$dunsnumber != "",]  
@@ -410,7 +410,7 @@ Total_Dollars_Obligated  = df %>%
   ungroup()
 
 # Remove
-remove(df)
+#remove(df)
 
 # Remove rows where parent DUNS is blank or the NAICS code is blank
 Total_Dollars_Obligated = Total_Dollars_Obligated[Total_Dollars_Obligated$dunsnumber != "" | 
@@ -502,7 +502,7 @@ Unique_PIIDs  = df %>%
   ungroup()
 
 # Remove
-remove(df)
+#remove(df)
 
 # Remove rows where parent DUNS is blank or the NAICS code is blank
 Unique_PIIDs = Unique_PIIDs[Unique_PIIDs$dunsnumber != "" | Unique_PIIDs$naics_code != "",]
